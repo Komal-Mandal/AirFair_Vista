@@ -4,5 +4,8 @@ numpy
 openpyxl
 seaborn
 scikit-learn
-xhboost
+xgboost
 joblib
+flask
+flask-cors
+
