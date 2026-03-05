@@ -301,4 +301,13 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
+
 The application will open in your browser.
+
+
+# Screenshot
+
+<img width="1239" height="677" alt="Screenshot 2026-03-05 144544" src="https://github.com/user-attachments/assets/7814cae2-133e-45d5-99df-ebc10a423ea2" />
+
+<img width="1175" height="471" alt="Screenshot 2026-03-05 144613" src="https://github.com/user-attachments/assets/e2b4226e-1140-4396-881d-f0ca3c4c04eb" />
+
