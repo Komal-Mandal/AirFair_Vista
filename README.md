@@ -284,16 +284,21 @@ After entering details, the system predicts the estimated flight ticket price.
 Follow these steps to run the project locally.
 
 1️⃣ Clone the Repository
-
+```
 git clone https://github.com/Komal-Mandal/AirFair_Vista.git
 
-2️⃣ Install Dependencies
-pip install -r requirements.txt
+```
 
-3️⃣ run to Project File
-  run flightprice 
+2️⃣ Install Dependencies
+```
+pip install -r requirements.txt
+```
+
+3️⃣ run flightprice
 
 4️⃣ Run the Streamlit Application
+```
 streamlit run app.py
+```
 
 The application will open in your browser.
