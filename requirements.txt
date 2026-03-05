@@ -6,6 +6,6 @@ seaborn
 scikit-learn
 xgboost
 joblib
-flask
+streamlit
 flask-cors
 
