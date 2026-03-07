@@ -1,44 +1,176 @@
-import pandas as pd
 import streamlit as st
+import pickle
+import numpy as np
+from datetime import datetime
+
+# Load trained model
+model = pickle.load(open("xgboost_model.pkl", "rb"))
+
+st.set_page_config(page_title="Flight Price Predictor", page_icon="✈️")
+
+st.title("✈️ Flight Price Prediction")
+st.write("Enter flight details to estimate ticket price")
+
+# Departure Time
+dep_time = st.datetime_input("Departure Time")
+
+# Arrival Time
+arr_time = st.datetime_input("Arrival Time")
+
+# Stops
+Total_stops = st.selectbox("Total Stops", [0,1,2,3,4])
+
+# Airline
+airline = st.selectbox(
+    "Airline",
+    [
+        'Jet Airways','IndiGo','Air India','Multiple carriers',
+        'SpiceJet','Vistara','GoAir',
+        'Multiple carriers Premium economy',
+        'Jet Airways Business',
+        'Vistara Premium economy','Trujet'
+    ]
+)
+
+# Source
+Source = st.selectbox(
+    "Source",
+    ['Delhi','Kolkata','Mumbai','Chennai']
+)
+
+# Destination
+Destination = st.selectbox(
+    "Destination",
+    ['Cochin','Delhi','New_Delhi','Hyderabad','Kolkata']
+)
+
+# -------------------------
+# Feature Engineering
+# -------------------------
+
+Journey_day = dep_time.day
+Journey_month = dep_time.month
+
+Dep_hour = dep_time.hour
+Dep_min = dep_time.minute
+
+Arrival_hour = arr_time.hour
+Arrival_min = arr_time.minute
+
+# Correct duration calculation
+duration = arr_time - dep_time
+dur_hour = duration.seconds // 3600
+dur_min = (duration.seconds % 3600) // 60
+
+# -------------------------
+# Airline Encoding
+# -------------------------
+
+Jet_Airways=IndiGo=Air_India=Multiple_carriers=SpiceJet=Vistara=GoAir=0
+Multiple_carriers_Premium_economy=Jet_Airways_Business=Vistara_Premium_economy=Trujet=0
+
+if airline == 'Jet Airways':
+    Jet_Airways = 1
+elif airline == 'IndiGo':
+    IndiGo = 1
+elif airline == 'Air India':
+    Air_India = 1
+elif airline == 'Multiple carriers':
+    Multiple_carriers = 1
+elif airline == 'SpiceJet':
+    SpiceJet = 1
+elif airline == 'Vistara':
+    Vistara = 1
+elif airline == 'GoAir':
+    GoAir = 1
+elif airline == 'Multiple carriers Premium economy':
+    Multiple_carriers_Premium_economy = 1
+elif airline == 'Jet Airways Business':
+    Jet_Airways_Business = 1
+elif airline == 'Vistara Premium economy':
+    Vistara_Premium_economy = 1
+elif airline == 'Trujet':
+    Trujet = 1
+
+# -------------------------
+# Source Encoding
+# -------------------------
+
+s_Delhi=s_Kolkata=s_Mumbai=s_Chennai=0
+
+if Source == "Delhi":
+    s_Delhi=1
+elif Source == "Kolkata":
+    s_Kolkata=1
+elif Source == "Mumbai":
+    s_Mumbai=1
+elif Source == "Chennai":
+    s_Chennai=1
+
+# -------------------------
+# Destination Encoding
+# -------------------------
+
+d_Cochin=d_Delhi=d_New_Delhi=d_Hyderabad=d_Kolkata=0
+
+if Destination == "Cochin":
+    d_Cochin=1
+elif Destination == "Delhi":
+    d_Delhi=1
+elif Destination == "New_Delhi":
+    d_New_Delhi=1
+elif Destination == "Hyderabad":
+    d_Hyderabad=1
+elif Destination == "Kolkata":
+    d_Kolkata=1
+
+# -------------------------
+# Prediction
+# -------------------------
 
 if st.button("Predict Price 💰"):
-    
-    input_data = {
-        "Total_Stops": Total_stops,
-        "Journey_day": Journey_day,
-        "Journey_month": Journey_month,
-        "Dep_hour": Dep_hour,
-        "Dep_min": Dep_min,
-        "Arrival_hour": Arrival_hour,
-        "Arrival_min": Arrival_min,
-        "Duration_hours": dur_hour,
-        "Duration_mins": dur_min,
-        "Airline_Air India": Air_India,
-        "Airline_GoAir": GoAir,
-        "Airline_IndiGo": IndiGo,
-        "Airline_Jet Airways": Jet_Airways,
-        "Airline_Jet Airways Business": Jet_Airways_Business,
-        "Airline_Multiple carriers": Multiple_carriers,
-        "Airline_Multiple carriers Premium economy": Multiple_carriers_Premium_economy,
-        "Airline_SpiceJet": SpiceJet,
-        "Airline_Trujet": Trujet,
-        "Airline_Vistara": Vistara,
-        "Airline_Vistara Premium economy": Vistara_Premium_economy,
-        "Source_Chennai": s_Chennai,
-        "Source_Delhi": s_Delhi,
-        "Source_Kolkata": s_Kolkata,
-        "Source_Mumbai": s_Mumbai,
-        "Destination_Cochin": d_Cochin,
-        "Destination_Delhi": d_Delhi,
-        "Destination_Hyderabad": d_Hyderabad,
-        "Destination_Kolkata": d_Kolkata,
-        "Destination_New_Delhi": d_New_Delhi
-    }
 
-    df = pd.DataFrame([input_data])
+    try:
 
-    prediction = model.predict(df)[0]
+        features = [[
+            Total_stops,
+            Journey_day,
+            Journey_month,
+            Dep_hour,
+            Dep_min,
+            Arrival_hour,
+            Arrival_min,
+            dur_hour,
+            dur_min,
+            Air_India,
+            GoAir,
+            IndiGo,
+            Jet_Airways,
+            Jet_Airways_Business,
+            Multiple_carriers,
+            Multiple_carriers_Premium_economy,
+            SpiceJet,
+            Trujet,
+            Vistara,
+            Vistara_Premium_economy,
+            s_Chennai,
+            s_Delhi,
+            s_Kolkata,
+            s_Mumbai,
+            d_Cochin,
+            d_Delhi,
+            d_Hyderabad,
+            d_Kolkata,
+            d_New_Delhi
+        ]]
 
-    price = round(prediction)
+        prediction = model.predict(features)
 
-    st.success(f"💰 Estimated Flight Price: ₹ {price:,}")
+        price = round(prediction[0])
+
+        st.success(f"💰 Estimated Flight Price: ₹ {price:,}")
+
+    except Exception as e:
+
+        st.error("Prediction Error")
+        st.write(e)
