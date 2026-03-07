@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pickle
 import numpy as np
@@ -59,8 +60,8 @@ Arrival_min = arr_time.minute
 
 # Correct duration calculation
 duration = arr_time - dep_time
-dur_hour = duration.seconds // 3600
-dur_min = (duration.seconds % 3600) // 60
+dur_hour = duration.total_seconds() // 3600
+dur_min = (duration.total_seconds() % 3600) // 60
 
 # -------------------------
 # Airline Encoding
@@ -166,7 +167,8 @@ if st.button("Predict Price 💰"):
 
         prediction = model.predict(features)
 
-        price = round(prediction[0])
+        # Convert log price → real price
+        price = round(np.exp(prediction[0]))
 
         st.success(f"💰 Estimated Flight Price: ₹ {price:,}")
 
@@ -174,3 +176,5 @@ if st.button("Predict Price 💰"):
 
         st.error("Prediction Error")
         st.write(e)
+
+
