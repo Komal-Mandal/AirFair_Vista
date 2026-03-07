@@ -143,7 +143,7 @@ if st.button("Predict Price 💰"):
         d_New_Delhi
     ]])
 
-    # Convert price to thousands
-    price = round(prediction[0] / 1000, 2)
+   
+    price = round(prediction[0] / 1000)
 
     st.success(f"💰 Estimated Flight Price: ₹ {price}K")
