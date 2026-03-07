@@ -143,7 +143,9 @@ if st.button("Predict Price 💰"):
         d_New_Delhi
     ]])
 
+
    
     price = round(prediction[0])
 
     st.success(f"💰 Estimated Flight Price: ₹ {price}K")
+    
