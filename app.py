@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pickle
 import pandas as pd
@@ -83,7 +82,6 @@ elif airline == 'Vistara Premium economy':
 elif airline == 'Trujet':
     Trujet = 1
 
-
 # Source Encoding
 s_Delhi=s_Kolkata=s_Mumbai=s_Chennai=0
 
@@ -95,7 +93,6 @@ elif Source == "Mumbai":
     s_Mumbai=1
 elif Source == "Chennai":
     s_Chennai=1
-
 
 # Destination Encoding
 d_Cochin=d_Delhi=d_New_Delhi=d_Hyderabad=d_Kolkata=0
@@ -110,7 +107,6 @@ elif Destination == "Hyderabad":
     d_Hyderabad=1
 elif Destination == "Kolkata":
     d_Kolkata=1
-
 
 # Prediction
 if st.button("Predict Price 💰"):
@@ -147,6 +143,7 @@ if st.button("Predict Price 💰"):
         d_New_Delhi
     ]])
 
-    price = round(prediction[0],2)
+    # Convert price to thousands
+    price = round(prediction[0] / 1000, 2)
 
-    st.success(f"Estimated Flight Price: ₹ {price}")
+    st.success(f"💰 Estimated Flight Price: ₹ {price}K")
