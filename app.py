@@ -144,6 +144,6 @@ if st.button("Predict Price 💰"):
     ]])
 
    
-    price = round(prediction[0] / 1000)
+    price = round(prediction[0])
 
     st.success(f"💰 Estimated Flight Price: ₹ {price}K")
