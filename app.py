@@ -1,21 +1,24 @@
 import streamlit as st
 import pickle
-import pandas as pd
+import numpy as np
 from datetime import datetime
 
-# Load model
+# Load trained model
 model = pickle.load(open("xgboost_model.pkl", "rb"))
 
+# Page settings
 st.set_page_config(page_title="Flight Price Predictor", page_icon="✈️", layout="centered")
 
 st.title("✈️ Flight Price Prediction App")
 st.write("Enter flight details to predict ticket price")
 
-# Date Inputs
+# Departure Time
 dep_time = st.datetime_input("Departure Time")
+
+# Arrival Time
 arr_time = st.datetime_input("Arrival Time")
 
-# Stops
+# Total Stops
 Total_stops = st.selectbox("Total Stops", [0,1,2,3,4])
 
 # Airline
@@ -42,7 +45,10 @@ Destination = st.selectbox(
     ['Cochin','Delhi','New_Delhi','Hyderabad','Kolkata']
 )
 
+# ------------------------
 # Feature Engineering
+# ------------------------
+
 Journey_day = dep_time.day
 Journey_month = dep_time.month
 
@@ -55,7 +61,10 @@ Arrival_min = arr_time.minute
 dur_hour = abs(Arrival_hour - Dep_hour)
 dur_min = abs(Arrival_min - Dep_min)
 
+# ------------------------
 # Airline Encoding
+# ------------------------
+
 Jet_Airways=IndiGo=Air_India=Multiple_carriers=SpiceJet=Vistara=GoAir=0
 Multiple_carriers_Premium_economy=Jet_Airways_Business=Vistara_Premium_economy=Trujet=0
 
@@ -82,7 +91,10 @@ elif airline == 'Vistara Premium economy':
 elif airline == 'Trujet':
     Trujet = 1
 
+# ------------------------
 # Source Encoding
+# ------------------------
+
 s_Delhi=s_Kolkata=s_Mumbai=s_Chennai=0
 
 if Source == "Delhi":
@@ -94,7 +106,10 @@ elif Source == "Mumbai":
 elif Source == "Chennai":
     s_Chennai=1
 
+# ------------------------
 # Destination Encoding
+# ------------------------
+
 d_Cochin=d_Delhi=d_New_Delhi=d_Hyderabad=d_Kolkata=0
 
 if Destination == "Cochin":
@@ -108,7 +123,10 @@ elif Destination == "Hyderabad":
 elif Destination == "Kolkata":
     d_Kolkata=1
 
+# ------------------------
 # Prediction
+# ------------------------
+
 if st.button("Predict Price 💰"):
 
     prediction = model.predict([[ 
@@ -143,9 +161,12 @@ if st.button("Predict Price 💰"):
         d_New_Delhi
     ]])
 
+    price = prediction[0]
 
-   
-    price = round(prediction[0])
+    # If model used log(price)
+    if price < 100:
+        price = np.exp(price)
 
-    st.success(f"💰 Estimated Flight Price: ₹ {price}K")
-    
+    price = round(price)
+
+    st.success(f"💰 Estimated Flight Price: ₹ {price:,}")
