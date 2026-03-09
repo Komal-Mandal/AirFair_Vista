@@ -254,12 +254,17 @@ if duration.total_seconds() < 0:
     arr_time = arr_time + timedelta(days=1)
     duration = arr_time - dep_time
 
+# Prevent zero duration
+if duration.total_seconds() == 0:
+    st.error("❌ Arrival time must be after departure time.")
+    st.stop()
+
 dur_hour = int(duration.total_seconds() // 3600)
 dur_min = int((duration.total_seconds() % 3600) // 60)
 
 # Warn if duration unrealistic
 if duration.days > 2:
-    st.warning("⚠️ Flight duration seems unrealistic. Please check times.")
+    st.warning("⚠️ Flight duration seems unrealistic.")
 
 # -------------------------
 # Airline Encoding
