@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pickle
 import numpy as np
@@ -58,10 +57,19 @@ Dep_min = dep_time.minute
 Arrival_hour = arr_time.hour
 Arrival_min = arr_time.minute
 
-# Correct duration calculation
+# -------------------------
+# Duration Validation
+# -------------------------
+
 duration = arr_time - dep_time
-dur_hour = duration.total_seconds() // 3600
-dur_min = (duration.total_seconds() % 3600) // 60
+
+if duration.total_seconds() <= 0:
+    dur_hour = 0
+    dur_min = 0
+    st.warning("⚠️ Arrival time must be after departure time.")
+else:
+    dur_hour = int(duration.total_seconds() // 3600)
+    dur_min = int((duration.total_seconds() % 3600) // 60)
 
 # -------------------------
 # Airline Encoding
@@ -131,50 +139,50 @@ elif Destination == "Kolkata":
 
 if st.button("Predict Price 💰"):
 
-    try:
+    if duration.total_seconds() <= 0:
+        st.error("❌ Please select valid arrival time.")
+    else:
+        try:
 
-        features = [[
-            Total_stops,
-            Journey_day,
-            Journey_month,
-            Dep_hour,
-            Dep_min,
-            Arrival_hour,
-            Arrival_min,
-            dur_hour,
-            dur_min,
-            Air_India,
-            GoAir,
-            IndiGo,
-            Jet_Airways,
-            Jet_Airways_Business,
-            Multiple_carriers,
-            Multiple_carriers_Premium_economy,
-            SpiceJet,
-            Trujet,
-            Vistara,
-            Vistara_Premium_economy,
-            s_Chennai,
-            s_Delhi,
-            s_Kolkata,
-            s_Mumbai,
-            d_Cochin,
-            d_Delhi,
-            d_Hyderabad,
-            d_Kolkata,
-            d_New_Delhi
-        ]]
+            features = [[
+                Total_stops,
+                Journey_day,
+                Journey_month,
+                Dep_hour,
+                Dep_min,
+                Arrival_hour,
+                Arrival_min,
+                dur_hour,
+                dur_min,
+                Air_India,
+                GoAir,
+                IndiGo,
+                Jet_Airways,
+                Jet_Airways_Business,
+                Multiple_carriers,
+                Multiple_carriers_Premium_economy,
+                SpiceJet,
+                Trujet,
+                Vistara,
+                Vistara_Premium_economy,
+                s_Chennai,
+                s_Delhi,
+                s_Kolkata,
+                s_Mumbai,
+                d_Cochin,
+                d_Delhi,
+                d_Hyderabad,
+                d_Kolkata,
+                d_New_Delhi
+            ]]
 
-        prediction = model.predict(features)
+            prediction = model.predict(features)
 
-        # Convert log price → real price
-        price = round(np.exp(prediction[0]))
+            price = round(np.exp(prediction[0]))
 
-        st.success(f"💰 Estimated Flight Price: ₹ {price:,}")
+            st.success(f"💰 Estimated Flight Price: ₹ {price:,}")
 
-    except Exception as e:
+        except Exception as e:
 
-        st.error("Prediction Error")
-        st.write(e)
-
-
+            st.error("Prediction Error")
+            st.write(e)
