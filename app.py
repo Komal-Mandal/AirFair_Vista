@@ -1,380 +1,125 @@
-# import streamlit as st
-# import pickle
-# import numpy as np
-# from datetime import datetime
-
-# # Load trained model
-# model = pickle.load(open("xgboost_model.pkl", "rb"))
-
-# st.set_page_config(page_title="Flight Price Predictor", page_icon="✈️")
-
-# st.title("✈️ Flight Price Prediction")
-# st.write("Enter flight details to estimate ticket price")
-
-# # Departure Time
-# dep_time = st.datetime_input("Departure Time")
-
-# # Arrival Time
-# arr_time = st.datetime_input("Arrival Time")
-
-# # Stops
-# Total_stops = st.selectbox("Total Stops", [0,1,2,3,4])
-
-# # Airline
-# airline = st.selectbox(
-#     "Airline",
-#     [
-#         'Jet Airways','IndiGo','Air India','Multiple carriers',
-#         'SpiceJet','Vistara','GoAir',
-#         'Multiple carriers Premium economy',
-#         'Jet Airways Business',
-#         'Vistara Premium economy','Trujet'
-#     ]
-# )
-
-# # Source
-# Source = st.selectbox(
-#     "Source",
-#     ['Delhi','Kolkata','Mumbai','Chennai']
-# )
-
-# # Destination
-# Destination = st.selectbox(
-#     "Destination",
-#     ['Cochin','Delhi','New_Delhi','Hyderabad','Kolkata']
-# )
-
-# # -------------------------
-# # Feature Engineering
-# # -------------------------
-
-# Journey_day = dep_time.day
-# Journey_month = dep_time.month
-
-# Dep_hour = dep_time.hour
-# Dep_min = dep_time.minute
-
-# Arrival_hour = arr_time.hour
-# Arrival_min = arr_time.minute
-
-# # -------------------------
-# # Duration Validation
-# # -------------------------
-
-# duration = arr_time - dep_time
-
-# if duration.total_seconds() <= 0:
-#     dur_hour = 0
-#     dur_min = 0
-#     st.warning("⚠️ Arrival time must be after departure time.")
-# else:
-#     dur_hour = int(duration.total_seconds() // 3600)
-#     dur_min = int((duration.total_seconds() % 3600) // 60)
-
-# # -------------------------
-# # Airline Encoding
-# # -------------------------
-
-# Jet_Airways=IndiGo=Air_India=Multiple_carriers=SpiceJet=Vistara=GoAir=0
-# Multiple_carriers_Premium_economy=Jet_Airways_Business=Vistara_Premium_economy=Trujet=0
-
-# if airline == 'Jet Airways':
-#     Jet_Airways = 1
-# elif airline == 'IndiGo':
-#     IndiGo = 1
-# elif airline == 'Air India':
-#     Air_India = 1
-# elif airline == 'Multiple carriers':
-#     Multiple_carriers = 1
-# elif airline == 'SpiceJet':
-#     SpiceJet = 1
-# elif airline == 'Vistara':
-#     Vistara = 1
-# elif airline == 'GoAir':
-#     GoAir = 1
-# elif airline == 'Multiple carriers Premium economy':
-#     Multiple_carriers_Premium_economy = 1
-# elif airline == 'Jet Airways Business':
-#     Jet_Airways_Business = 1
-# elif airline == 'Vistara Premium economy':
-#     Vistara_Premium_economy = 1
-# elif airline == 'Trujet':
-#     Trujet = 1
-
-# # -------------------------
-# # Source Encoding
-# # -------------------------
-
-# s_Delhi=s_Kolkata=s_Mumbai=s_Chennai=0
-
-# if Source == "Delhi":
-#     s_Delhi=1
-# elif Source == "Kolkata":
-#     s_Kolkata=1
-# elif Source == "Mumbai":
-#     s_Mumbai=1
-# elif Source == "Chennai":
-#     s_Chennai=1
-
-# # -------------------------
-# # Destination Encoding
-# # -------------------------
-
-# d_Cochin=d_Delhi=d_New_Delhi=d_Hyderabad=d_Kolkata=0
-
-# if Destination == "Cochin":
-#     d_Cochin=1
-# elif Destination == "Delhi":
-#     d_Delhi=1
-# elif Destination == "New_Delhi":
-#     d_New_Delhi=1
-# elif Destination == "Hyderabad":
-#     d_Hyderabad=1
-# elif Destination == "Kolkata":
-#     d_Kolkata=1
-
-# # -------------------------
-# # Prediction
-# # -------------------------
-
-# if st.button("Predict Price 💰"):
-
-#     if duration.total_seconds() <= 0:
-#         st.error("❌ Please select valid arrival time.")
-#     else:
-#         try:
-
-#             features = [[
-#                 Total_stops,
-#                 Journey_day,
-#                 Journey_month,
-#                 Dep_hour,
-#                 Dep_min,
-#                 Arrival_hour,
-#                 Arrival_min,
-#                 dur_hour,
-#                 dur_min,
-#                 Air_India,
-#                 GoAir,
-#                 IndiGo,
-#                 Jet_Airways,
-#                 Jet_Airways_Business,
-#                 Multiple_carriers,
-#                 Multiple_carriers_Premium_economy,
-#                 SpiceJet,
-#                 Trujet,
-#                 Vistara,
-#                 Vistara_Premium_economy,
-#                 s_Chennai,
-#                 s_Delhi,
-#                 s_Kolkata,
-#                 s_Mumbai,
-#                 d_Cochin,
-#                 d_Delhi,
-#                 d_Hyderabad,
-#                 d_Kolkata,
-#                 d_New_Delhi
-#             ]]
-
-#             prediction = model.predict(features)
-
-#             price = round(np.exp(prediction[0]))
-
-#             st.success(f"💰 Estimated Flight Price: ₹ {price:,}")
-
-#         except Exception as e:
-
-#             st.error("Prediction Error")
-#             st.write(e)
-
 import streamlit as st
 import pickle
 import numpy as np
+import pandas as pd
 from datetime import datetime, timedelta
 
-# Load trained model
-model = pickle.load(open("xgboost_model.pkl", "rb"))
-
-st.set_page_config(page_title="Flight Price Predictor", page_icon="✈️")
-
-st.title("✈️ Flight Price Prediction")
-st.write("Enter flight details to estimate ticket price")
-
 # -------------------------
-# User Inputs
+# 1. Page Configuration & Model Loading
 # -------------------------
+st.set_page_config(page_title="Flight Price Predictor", page_icon="✈️", layout="centered")
 
-dep_time = st.datetime_input("Departure Time")
-arr_time = st.datetime_input("Arrival Time")
+@st.cache_resource
+def load_model():
+    # Ensure xgboost_model.pkl is in the same folder as this script
+    return pickle.load(open("xgboost_model.pkl", "rb"))
 
-Total_stops = st.selectbox("Total Stops", [0,1,2,3,4])
-
-airline = st.selectbox(
-    "Airline",
-    [
-        'Jet Airways','IndiGo','Air India','Multiple carriers',
-        'SpiceJet','Vistara','GoAir',
-        'Multiple carriers Premium economy',
-        'Jet Airways Business',
-        'Vistara Premium economy','Trujet'
-    ]
-)
-
-Source = st.selectbox(
-    "Source",
-    ['Delhi','Kolkata','Mumbai','Chennai']
-)
-
-Destination = st.selectbox(
-    "Destination",
-    ['Cochin','Delhi','New_Delhi','Hyderabad','Kolkata']
-)
-
-# -------------------------
-# Feature Engineering
-# -------------------------
-
-Journey_day = dep_time.day
-Journey_month = dep_time.month
-
-Dep_hour = dep_time.hour
-Dep_min = dep_time.minute
-
-Arrival_hour = arr_time.hour
-Arrival_min = arr_time.minute
-
-# -------------------------
-# Duration Calculation
-# -------------------------
-
-duration = arr_time - dep_time
-
-# Handle overnight flights
-if duration.total_seconds() < 0:
-    arr_time = arr_time + timedelta(days=1)
-    duration = arr_time - dep_time
-
-# Prevent zero duration
-if duration.total_seconds() == 0:
-    st.error("❌ Arrival time must be after departure time.")
+try:
+    model = load_model()
+except FileNotFoundError:
+    st.error("🚨 Error: 'xgboost_model.pkl' not found. Please upload the model file.")
     st.stop()
 
-dur_hour = int(duration.total_seconds() // 3600)
-dur_min = int((duration.total_seconds() % 3600) // 60)
+# -------------------------
+# 2. User Interface
+# -------------------------
+st.title("✈️ Flight Price Prediction")
+st.markdown("Estimate your ticket price using machine learning.")
+st.divider()
 
-# Warn if duration unrealistic
-if duration.days > 2:
-    st.warning("⚠️ Flight duration seems unrealistic.")
+col1, col2 = st.columns(2)
+
+with col1:
+    dep_time = st.datetime_input("Departure Time", value=datetime.now())
+    source = st.selectbox("Source", ['Delhi', 'Kolkata', 'Mumbai', 'Chennai'])
+    total_stops = st.selectbox("Total Stops", [0, 1, 2, 3, 4])
+
+with col2:
+    # Default arrival is set to 2 hours after departure to avoid instant errors
+    arr_time = st.datetime_input("Arrival Time", value=dep_time + timedelta(hours=2))
+    destination = st.selectbox("Destination", ['Cochin', 'Delhi', 'New_Delhi', 'Hyderabad', 'Kolkata'])
+    airline = st.selectbox(
+        "Airline",
+        [
+            'Jet Airways', 'IndiGo', 'Air India', 'Multiple carriers', 
+            'SpiceJet', 'Vistara', 'GoAir', 'Multiple carriers Premium economy',
+            'Jet Airways Business', 'Vistara Premium economy', 'Trujet'
+        ]
+    )
 
 # -------------------------
-# Airline Encoding
+# 3. Time Logic & Duration Validation
 # -------------------------
+duration = arr_time - dep_time
+duration_seconds = duration.total_seconds()
 
-Jet_Airways=IndiGo=Air_India=Multiple_carriers=SpiceJet=Vistara=GoAir=0
-Multiple_carriers_Premium_economy=Jet_Airways_Business=Vistara_Premium_economy=Trujet=0
+if duration_seconds < 0:
+    st.error("❌ **Error:** Arrival time cannot be earlier than Departure time. Please check the dates.")
+    st.stop()
 
-if airline == 'Jet Airways':
-    Jet_Airways = 1
-elif airline == 'IndiGo':
-    IndiGo = 1
-elif airline == 'Air India':
-    Air_India = 1
-elif airline == 'Multiple carriers':
-    Multiple_carriers = 1
-elif airline == 'SpiceJet':
-    SpiceJet = 1
-elif airline == 'Vistara':
-    Vistara = 1
-elif airline == 'GoAir':
-    GoAir = 1
-elif airline == 'Multiple carriers Premium economy':
-    Multiple_carriers_Premium_economy = 1
-elif airline == 'Jet Airways Business':
-    Jet_Airways_Business = 1
-elif airline == 'Vistara Premium economy':
-    Vistara_Premium_economy = 1
-elif airline == 'Trujet':
-    Trujet = 1
+dur_hour = int(duration_seconds // 3600)
+dur_min = int((duration_seconds % 3600) // 60)
+
+st.info(f"⏱️ **Flight Duration:** {dur_hour} hours, {dur_min} minutes")
 
 # -------------------------
-# Source Encoding
+# 4. Feature Engineering
 # -------------------------
+# Extracting Date/Time components
+journey_day = dep_time.day
+journey_month = dep_time.month
+dep_hour = dep_time.hour
+dep_min = dep_time.minute
+arrival_hour = arr_time.hour
+arrival_min = arr_time.minute
 
-s_Delhi=s_Kolkata=s_Mumbai=s_Chennai=0
+# Helper function for One-Hot Encoding
+def get_encoded_list(selected_value, categories):
+    return [1 if selected_value == cat else 0 for cat in categories]
 
-if Source == "Delhi":
-    s_Delhi=1
-elif Source == "Kolkata":
-    s_Kolkata=1
-elif Source == "Mumbai":
-    s_Mumbai=1
-elif Source == "Chennai":
-    s_Chennai=1
+# Define category lists (MUST MATCH THE ORDER YOUR MODEL WAS TRAINED ON)
+airlines_list = [
+    'Air India', 'GoAir', 'IndiGo', 'Jet Airways', 'Jet Airways Business',
+    'Multiple carriers', 'Multiple carriers Premium economy', 'SpiceJet',
+    'Trujet', 'Vistara', 'Vistara Premium economy'
+]
+sources_list = ['Chennai', 'Delhi', 'Kolkata', 'Mumbai']
+dest_list = ['Cochin', 'Delhi', 'Hyderabad', 'Kolkata', 'New_Delhi']
 
-# -------------------------
-# Destination Encoding
-# -------------------------
-
-d_Cochin=d_Delhi=d_New_Delhi=d_Hyderabad=d_Kolkata=0
-
-if Destination == "Cochin":
-    d_Cochin=1
-elif Destination == "Delhi":
-    d_Delhi=1
-elif Destination == "New_Delhi":
-    d_New_Delhi=1
-elif Destination == "Hyderabad":
-    d_Hyderabad=1
-elif Destination == "Kolkata":
-    d_Kolkata=1
+# Encode the inputs
+airline_encoded = get_encoded_list(airline, airlines_list)
+source_encoded = get_encoded_list(source, sources_list)
+dest_encoded = get_encoded_list(destination, dest_list)
 
 # -------------------------
-# Prediction
+# 5. Prediction
 # -------------------------
-
-if st.button("Predict Price 💰"):
-
+if st.button("Predict Ticket Price 💰", use_container_width=True):
     try:
+        # Construct the feature vector in the exact order the model expects
+        # 1. Numerical Features
+        features_numeric = [
+            total_stops, journey_day, journey_month, 
+            dep_hour, dep_min, arrival_hour, arrival_min, 
+            dur_hour, dur_min
+        ]
+        
+        # 2. Concatenate all features (Numeric + Encoded Categoricals)
+        final_features = np.array([features_numeric + airline_encoded + source_encoded + dest_encoded])
 
-        features = [[
-            Total_stops,
-            Journey_day,
-            Journey_month,
-            Dep_hour,
-            Dep_min,
-            Arrival_hour,
-            Arrival_min,
-            dur_hour,
-            dur_min,
-            Air_India,
-            GoAir,
-            IndiGo,
-            Jet_Airways,
-            Jet_Airways_Business,
-            Multiple_carriers,
-            Multiple_carriers_Premium_economy,
-            SpiceJet,
-            Trujet,
-            Vistara,
-            Vistara_Premium_economy,
-            s_Chennai,
-            s_Delhi,
-            s_Kolkata,
-            s_Mumbai,
-            d_Cochin,
-            d_Delhi,
-            d_Hyderabad,
-            d_Kolkata,
-            d_New_Delhi
-        ]]
+        # Predict
+        prediction = model.predict(final_features)
+        
+        # Reversing Log Transformation (if applicable, which is common in flight price datasets)
+        # If your model predicts actual price directly, remove np.exp()
+        final_price = round(np.exp(prediction[0]))
 
-        prediction = model.predict(features)
-
-        price = round(np.exp(prediction[0]))
-
-        st.success(f"💰 Estimated Flight Price: ₹ {price:,}")
-
+        st.success(f"### 💸 Estimated Price: ₹ {final_price:,}")
+        st.balloons()
+        
     except Exception as e:
+        st.error("An error occurred during prediction. Please verify feature shapes.")
+        st.write(f"Error Details: {e}")
 
-        st.error("Prediction Error")
-        st.write(e)
+st.divider()
+st.caption("Note: Prices are estimated based on historical data patterns.")
