@@ -44,32 +44,24 @@ def load_assets():
     ohe = joblib.load("airline_encoder.pkl")
     
     try:
-        # Load Raw Data
         df = pd.read_excel("Data_Train.xlsx", engine='openpyxl')
-        
-        # --- FEATURE ENGINEERING FOR HEATMAP ---
         if 'Total_Stops' in df.columns:
             df['Total_Stops'] = df['Total_Stops'].replace('non-stop', '0 stops')
             df['Total_Stops'] = df['Total_Stops'].str.extract('(\d+)').fillna(0).astype(int)
-            
         if 'Date_of_Journey' in df.columns:
             df['Date_of_Journey'] = pd.to_datetime(df['Date_of_Journey'], dayfirst=True)
             df['Journey_day'] = df['Date_of_Journey'].dt.day
             df['Journey_month'] = df['Date_of_Journey'].dt.month
-            
         if 'Duration' in df.columns:
             def convert_duration(duration):
-                h = 0
-                m = 0
+                h, m = 0, 0
                 if 'h' in duration: h = int(duration.split('h')[0])
                 if 'm' in duration: m = int(duration.split('m')[0].split()[-1])
                 return (h * 60) + m
             df['Duration_minutes'] = df['Duration'].apply(convert_duration)
-
     except Exception as e:
         st.warning(f"Note: Data_Train.xlsx processing skipped or failed: {e}")
         df = pd.DataFrame()
-        
     return model, scaler, columns, ohe, df
 
 model, scaler, columns, ohe, training_data = load_assets()
@@ -85,8 +77,7 @@ def predict_price(input_dict, airline_name):
     airline_df = pd.DataFrame(airline_encoded, columns=ohe.get_feature_names_out())
     df = pd.concat([df, airline_df], axis=1)
     for col in columns:
-        if col not in df.columns:
-            df[col] = 0
+        if col not in df.columns: df[col] = 0
     df = df[columns]
     df_scaled = scaler.transform(df)
     return np.expm1(model.predict(df_scaled)[0])
@@ -106,8 +97,6 @@ with tab1:
         st.subheader("📍 Journey Details")
         src = st.selectbox("Source", ['Delhi', 'Kolkata', 'Mumbai', 'Chennai'])
         dest = st.selectbox("Destination", ['Cochin', 'Delhi', 'New Delhi', 'Hyderabad', 'Kolkata'])
-        
-        # ADDED: Jet Airways Business included back in the list
         air = st.selectbox("Airline", [
             'IndiGo', 'Air India', 'Jet Airways', 'Jet Airways Business', 
             'SpiceJet', 'Vistara', 'GoAir', 'Multiple carriers', 
@@ -116,16 +105,17 @@ with tab1:
     
     with col2:
         st.subheader("🕒 Schedule")
-        # FIX: Define Departure
-        dep = st.datetime_input("Departure Time", value=datetime.now())
         
-        # FIX: Arrival restricted to be after Departure
+        # FIX: min_value=datetime.now() ensures you cannot pick a past date for Departure
+        current_time = datetime.now()
+        dep = st.datetime_input("Departure Time", value=current_time, min_value=current_time)
+        
+        # FIX: min_value=dep ensures Arrival is always after Departure
         arr = st.datetime_input("Arrival Time", value=dep + timedelta(hours=2), min_value=dep)
         
         stops = st.slider("Total Stops", 0, 4, 0)
 
     if st.button("Predict Fare"):
-        # Validation: Arrival cannot be same as or before departure
         if arr <= dep:
             st.error("❌ Invalid Schedule: Arrival must be after Departure.")
         else:
@@ -134,15 +124,10 @@ with tab1:
             dur_m = int((duration.total_seconds() % 3600) // 60)
             
             feats = {
-                "Total_Stops": stops, 
-                "Journey_day": dep.day, 
-                "Journey_month": dep.month, 
-                "Dep_hour": dep.hour, 
-                "Dep_min": dep.minute, 
-                "Arrival_hour": arr.hour, 
-                "Arrival_min": arr.minute, 
-                "Duration_hours": dur_h, 
-                "Duration_mins": dur_m
+                "Total_Stops": stops, "Journey_day": dep.day, "Journey_month": dep.month, 
+                "Dep_hour": dep.hour, "Dep_min": dep.minute, 
+                "Arrival_hour": arr.hour, "Arrival_min": arr.minute, 
+                "Duration_hours": dur_h, "Duration_mins": dur_m
             }
             
             price = predict_price(feats, air)
@@ -164,7 +149,6 @@ with tab2:
 # --- TAB 3: ADVANCED EDA ---
 with tab3:
     st.subheader("📈 Exploratory Data Analysis")
-    
     if not training_data.empty:
         st.markdown("##### 1. Full Multi-Feature Correlation Matrix")
         numeric_df = training_data.select_dtypes(include=[np.number])
@@ -204,6 +188,5 @@ with tab3:
             fig_dens = px.density_heatmap(training_data, x="Duration_minutes", y="Price", color_continuous_scale='Blues')
             fig_dens.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font={'color':"white"})
             st.plotly_chart(fig_dens, use_container_width=True)
-
     else:
-        st.error("⚠️ Data_Train.xlsx not found. Visuals restricted.")
+        st.error("⚠️ Data_Train.xlsx not found.")
